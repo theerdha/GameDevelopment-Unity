@@ -9,9 +9,14 @@ public class HexCell : MonoBehaviour
 
     public HexGridChunk chunk;
 
+    public Transform cloudPrefab;
+
+    public Transform rainPrefab;
+
     public Transform cloudInstance;
 
     public Transform rainInstance;
+
 
     public Color Color
     {
@@ -297,13 +302,20 @@ public class HexCell : MonoBehaviour
             {
                 isRaining = value;
                 deleteRain();
-                // TODO
-            }
+                
+                }
             else if(isRaining == false && value == true)
             {
                 isRaining = value;
+                
                 generateRain();
                 rainStartTimeStamp = Time.time;
+
+                float pr = Mathf.Pow((pressure + 0.8f) / 2.4f, 2);
+                float hm = Mathf.Pow((humidity-40f)/50f, 2);
+                if (temperature > 0) temperature = 0.9f * temperature;
+                pressure = Mathf.Lerp(-0.8f, 1.6f, pr);
+                humidity = Mathf.Lerp(40f, 90f, hm);
             }
             
         }
@@ -321,13 +333,14 @@ public class HexCell : MonoBehaviour
             {
                 isCloud = value;
                 deleteCloud();
-                // TODO
+                
             }
             else if (isCloud == false && value == true)
             {
                 isCloud = true;
                 generateCloud();
                 cloudStartTimeStamp = Time.time;
+                
             }
             
         }
@@ -358,26 +371,26 @@ public class HexCell : MonoBehaviour
     }
 
     void deleteCloud() {
-        Debug.Log("Im called cloud del");
         Destroy(cloudInstance.gameObject);
+        if (rainInstance != null)
+            Destroy(rainInstance.gameObject);
     }
     void generateCloud() {
-        Transform instance = Instantiate(cloudInstance);
+        cloudInstance = Instantiate(cloudPrefab);
         Vector3 position = Position;
-        position.y += instance.localScale.y * 0.5f;
-        instance.localPosition = HexMetrics.Perturb(position);
-        instance.localRotation = Quaternion.Euler(0f, 360f * 0.5f, 0f);
+        position.y += cloudInstance.localScale.y * 0.5f;
+        cloudInstance.localPosition = HexMetrics.Perturb(position);
+        cloudInstance.localRotation = Quaternion.Euler(0f, 360f * 0.5f, 0f);
     }
     void deleteRain() {
-        Debug.Log("Im called rain del");
         Destroy(rainInstance.gameObject);
     }
     void generateRain() {
-        Transform instance = Instantiate(rainInstance);
+        rainInstance = Instantiate(rainPrefab);
         Vector3 position = Position;
-        position.y += instance.localScale.y * 15f;
-        instance.localPosition = HexMetrics.Perturb(position);
-        instance.localRotation = Quaternion.Euler(0f, 360f * 0.5f, 0f);
+        position.y += rainInstance.localScale.y * 15f;
+        rainInstance.localPosition = HexMetrics.Perturb(position);
+        rainInstance.localRotation = Quaternion.Euler(0f, 360f * 0.5f, 0f);
         
     }
 
@@ -422,14 +435,14 @@ public class HexCell : MonoBehaviour
     float rainStartTimeStamp;
     float cloudStartTimeStamp;
 
-    float temperature;  // In celsius
-    float pressure; // In kiloPascals
-    float humidity; // In percentage
-    float CO2Percentage;    // In percentage
-    float precipitation;	// in mm
+    public float temperature;  // In celsius
+    public float pressure; // In kiloPascals
+    public float humidity; // In percentage
+    public float CO2Percentage;    // In percentage
+    public float precipitation;	// in mm
 
-    float rainDurationFactor = 10; //max rain duration is for 1000 frames
-    float cloudDurationFactor = 10;//
+    float rainDurationFactor = 10000; //max rain duration is for 1000 frames
+    float cloudDurationFactor = 10000;//
 
     int urbanLevel, farmLevel, plantLevel;
 
@@ -444,14 +457,15 @@ public class HexCell : MonoBehaviour
 
     float CalculateRainProbability()
     {
-        if (isCloud == true) return 0.8f;
-        else return 0.1f;
+        if (isCloud == true) return 0.05f * PrCloud;
+        else return 0.005f * PrCloud;
     }
 
     float CalculateCloudProbability()
     {
         float c;
-        c = 0.6f * (Mathf.Sqrt(temperature) * humidity * CO2Percentage) / pressure;
+        //c = 0.6f * (pressure * humidity) / (Mathf.Sqrt(temperature) * CO2Percentage);
+        c = (5f / 12f) * (pressure + 0.8f) * (humidity - 40f) / (temperature + 60f);
         float cClamped;
         cClamped = Mathf.Lerp(0f, 1f, c);
         return cClamped;
@@ -460,14 +474,14 @@ public class HexCell : MonoBehaviour
     void CalculateRainDuration()
     {
         rainDurationCycles = (int)(PrRain * rainDurationFactor);
+        if (rainDurationCycles > cloudDurationCycles)
+            rainDurationCycles = cloudDurationCycles;
         return;
     }
 
     void CalculateCloudDuration()
     {
         cloudDurationCycles = (int)(PrCloud * cloudDurationFactor);
-        if (cloudDurationCycles < rainDurationCycles)
-            cloudDurationCycles = rainDurationCycles;
         return;
     }
 
@@ -477,8 +491,18 @@ public class HexCell : MonoBehaviour
         PrCloud = CalculateCloudProbability();
         CalculateRainDuration();
         CalculateCloudDuration();
+        UpdateParamsRandom();
     }
 
+    void UpdateParamsRandom()
+    {
+        temperature +=  Random.Range(-2.0f, 2.0f);
+        pressure += Random.Range(-0.005f, 0.005f);
+        humidity += Random.Range(-1f, 1f);
+        precipitation += Random.Range(-0.01f, 0.01f);
+        CO2Percentage = Random.Range(-0.0006f, 0.0006f);
+    }
+    
     void UpdateParams()
     {
         /*
@@ -489,22 +513,22 @@ public class HexCell : MonoBehaviour
         precipitation;	// in mm
         dependencies on urbanLevel, farmLevel, plantLevel
         */
+        
+        float temp = (0.5f + UrbanLevel/6.0f) / (Mathf.Sqrt(1 + plantLevel/6.0f) * Mathf.Sqrt(1 + FarmLevel/6.0f));
+        temperature = Mathf.Lerp(-10f, 50f, temp) + Random.Range(-5.0f,5.0f);
 
-        float temp = UrbanLevel / (Mathf.Sqrt(plantLevel) * Mathf.Sqrt(Mathf.Sqrt(FarmLevel)));
-        temperature = Mathf.Lerp(-10f, 50f, temp);
+        float press = (0.5f + UrbanLevel/6.0f) / (Mathf.Sqrt(1 + plantLevel/6.0f) * Mathf.Sqrt(1 + FarmLevel/6.0f));
+        pressure = Mathf.Lerp(-0.8f, 1.6f, press) + Random.Range(-0.1f, 0.1f) ;
 
-        float press = UrbanLevel / (Mathf.Sqrt(Mathf.Sqrt(plantLevel)) * Mathf.Sqrt(FarmLevel));
-        pressure = Mathf.Lerp(-0.8f, 1.6f, temp);
+        float hum = (Mathf.Sqrt(Mathf.Sqrt(0.5f + plantLevel/6.0f))) * (Mathf.Sqrt(Mathf.Sqrt(0.5f + plantLevel/6.0f))) / (1 + UrbanLevel/6.0f);
+        humidity = Mathf.Lerp(40f, 90f, hum) + Random.Range(-10f, 10f);
 
-        float hum = (Mathf.Sqrt(Mathf.Sqrt(plantLevel))) * (Mathf.Sqrt(Mathf.Sqrt(plantLevel))) / UrbanLevel;
-        humidity = Mathf.Lerp(40f, 90f, hum);
+        float prec = (Mathf.Sqrt(Mathf.Sqrt(0.5f + plantLevel/3.0f))) * (Mathf.Sqrt(Mathf.Sqrt(0.5f + plantLevel/3.0f))) / Mathf.Pow(1 + UrbanLevel/3.0f, 2);
+        precipitation = Mathf.Lerp(0.1f, 9f, prec);
 
-        float prec = (Mathf.Sqrt(Mathf.Sqrt(plantLevel))) * (Mathf.Sqrt(Mathf.Sqrt(plantLevel))) / Mathf.Pow(UrbanLevel, 2);
-        precipitation = Mathf.Lerp(0.1f, 9f, hum);
-
-        float CO2 = Mathf.Pow(UrbanLevel, 3) / (Mathf.Sqrt(plantLevel) * Mathf.Sqrt(plantLevel));
+        float CO2 = Mathf.Pow(0.5f + UrbanLevel/3.0f, 3) / (Mathf.Sqrt(1 + plantLevel/3.0f) * Mathf.Sqrt(1 + plantLevel/3.0f));
         CO2Percentage = Mathf.Lerp(0.003f, 0.07f, CO2);
-
+        
     }
 
     public void UpdateCell()

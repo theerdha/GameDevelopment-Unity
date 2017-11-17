@@ -155,9 +155,9 @@ public class HexMapEditor : MonoBehaviour
 
     void checkRandomEvents(HexCell cell, float sample)
     {
+        Debug.Log("sample : " + sample + "; Cloud Pr : " + cell.ProbabilityCloud + "; Rain Pr : " + cell.ProbabilityRain);
         if (cell.IsCloud == false)
         {
-
             if (sample < cell.ProbabilityCloud)
             {
                 createCloud(cell);
@@ -182,7 +182,7 @@ public class HexMapEditor : MonoBehaviour
 
     void updateCloudStatus(HexCell cell)
     {
-        if (cell.CloudStartTimeStamp + cell.CloudDurationCycles <Time.time)
+        if (cell.CloudStartTimeStamp + cell.CloudDurationCycles < Time.time)
         {
             cell.IsCloud = false;
         }
@@ -210,7 +210,7 @@ public class HexMapEditor : MonoBehaviour
 
     float randomSample()
     {
-        return Random.Range(0, 1);
+        return Random.Range(0.0f, 1.0f);
     }
 
     void HandleInput()
