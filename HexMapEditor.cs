@@ -155,27 +155,38 @@ public class HexMapEditor : MonoBehaviour
 
     void checkRandomEvents(HexCell cell, float sample)
     {
-        Debug.Log("sample : " + sample + "; Cloud Pr : " + cell.ProbabilityCloud + "; Rain Pr : " + cell.ProbabilityRain);
-        if (cell.IsCloud == false)
+        Debug.Log("sample : " + sample + "; Cloud Pr : " + cell.ProbabilityCloud + "; Rain Pr : " + cell.ProbabilityRain + "; Flood Pr : " + cell.ProbabilityFlood + "; Drought Pr : " + cell.ProbabilityDrought);
+        if( (sample < cell.ProbabilityDrought) && (cell.IsCloud == false) && (cell.IsRaining == false) )
         {
-            if (sample < cell.ProbabilityCloud)
-            {
-                createCloud(cell);
-            }
+            createDrought(cell);
         }
-        else
+        if (cell.IsDrought == false)
         {
-            updateCloudStatus(cell);
-            if (cell.IsRaining == false)
+            if (cell.IsCloud == false)
             {
-                if (sample < cell.ProbabilityRain)
+                if (sample < cell.ProbabilityCloud)
                 {
-                    createRain(cell);
+                    createCloud(cell);
                 }
             }
             else
             {
-                updateRainStatus(cell);
+                updateCloudStatus(cell);
+                if (cell.IsRaining == false)
+                {
+                    if (sample < cell.ProbabilityRain)
+                    {
+                        createRain(cell);
+                    }
+                }
+                else
+                {
+                    if (sample < cell.ProbabilityFlood)
+                    {
+                        createFlood(cell);
+                    }
+                    updateRainStatus(cell);
+                }
             }
         }
     }
@@ -207,6 +218,22 @@ public class HexMapEditor : MonoBehaviour
     {
         cell.IsCloud = true;
     }
+
+    void createFlood(HexCell cell)
+    {
+        cell.IsDrought = true;
+        cell.WaterLevel = 1;
+    }
+
+    void createDrought(HexCell cell)
+    {
+        cell.Color = colors[0];
+    }
+
+    /*void createCloud(HexCell cell)
+    {
+        cell.IsFlood = true;
+    }*/
 
     float randomSample()
     {
@@ -279,10 +306,9 @@ public class HexMapEditor : MonoBehaviour
     {
         if (cell)
         {
-            if (applyColor)
-            {
-                cell.Color = activeColor;
-            }
+
+            cell.Color = colors[1];
+
             if (applyElevation)
             {
                 cell.Elevation = activeElevation;

@@ -289,6 +289,34 @@ public class HexCell : MonoBehaviour
         }
     }
 
+    public float ProbabilityFlood
+    {
+        get
+        {
+            return PrFlood;
+        }
+        set
+        {
+            if (PrFlood != value)
+            {
+                PrFlood = value;
+                RefreshSelfOnly();
+            }
+        }
+    }
+
+    public float ProbabilityDrought
+    {
+        get
+        {
+            return PrDrought;
+        }
+        set
+        {
+            PrDrought = value;
+            RefreshSelfOnly();
+        }
+    }
 
     public bool IsRaining
     {
@@ -343,6 +371,17 @@ public class HexCell : MonoBehaviour
                 
             }
             
+        }
+    }
+
+    public bool IsDrought
+    {
+        get
+        {
+            return isDrought;
+        }
+        set {
+            isDrought = value;
         }
     }
 
@@ -426,9 +465,11 @@ public class HexCell : MonoBehaviour
     public float PrRain;
     public float PrCloud;
     public float PrDrought;
+    public float PrFlood;
     public bool isVacant;
     bool isRaining;
     bool isCloud;
+    bool isDrought;
     int rainDurationCycles;
     int cloudDurationCycles;
 
@@ -471,6 +512,16 @@ public class HexCell : MonoBehaviour
         return cClamped;
     }
 
+    float CalculateFloodProbability()
+    {
+        return PrRain * 0.01f;
+    }
+
+    float CalculateDroughtProbability()
+    {
+        return 0.01f * (temperature + 10f) / (15f * humidity);
+    }
+
     void CalculateRainDuration()
     {
         rainDurationCycles = (int)(PrRain * rainDurationFactor);
@@ -489,8 +540,11 @@ public class HexCell : MonoBehaviour
     {
         PrRain = CalculateRainProbability();
         PrCloud = CalculateCloudProbability();
+        PrFlood = CalculateFloodProbability();
+        PrDrought = CalculateDroughtProbability();
         CalculateRainDuration();
         CalculateCloudDuration();
+        
         UpdateParamsRandom();
     }
 

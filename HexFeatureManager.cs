@@ -6,8 +6,6 @@ public class HexFeatureManager : MonoBehaviour {
 		urbanCollections, farmCollections, plantCollections;
 
 	Transform container;
-    public Transform clouds;
-	public Transform rain;
 
 	public void Clear () {
 		if (container) {
@@ -75,25 +73,7 @@ public class HexFeatureManager : MonoBehaviour {
 		instance.localPosition = HexMetrics.Perturb(position);
 		instance.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
 		instance.SetParent(container, false);
-        /*
-        if (setcloud)
-        {
-            Transform instance1 = Instantiate(clouds);
-            position.y += instance1.localScale.y * 2f;
-            instance1.localPosition = HexMetrics.Perturb(position);
-            instance1.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
-            instance1.SetParent(container, false);
-        }
-
-        if (setrain)
-        {
-            Transform instance2 = Instantiate(rain);
-            position.y = instance2.localScale.y * 15f;
-            instance2.localPosition = HexMetrics.Perturb(position);
-            instance2.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
-            instance2.SetParent(container, false);
-        }
-        */
+        
        
     }
 }
