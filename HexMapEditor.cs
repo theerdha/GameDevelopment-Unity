@@ -157,9 +157,10 @@ public class HexMapEditor : MonoBehaviour
     {
         if (cell.IsCloud == false)
         {
+
             if (sample < cell.ProbabilityCloud)
             {
-                createRain(cell);
+                createCloud(cell);
             }
         }
         else
@@ -181,24 +182,20 @@ public class HexMapEditor : MonoBehaviour
 
     void updateCloudStatus(HexCell cell)
     {
-        // write time 
-        /*
-        if (cell.CloudStartTimeStamp + cell.CloudDurationCycles > time)
+        if (cell.CloudStartTimeStamp + cell.CloudDurationCycles <Time.time)
         {
             cell.IsCloud = false;
         }
-        */
+        
     }
     
     void updateRainStatus(HexCell cell)
     {
-        //time
-        /*
-        if (cell.RainStartTimeStamp + cell.RainDurationCycles > time)
+        
+        if (cell.RainStartTimeStamp + cell.RainDurationCycles < Time.time)
         {
             cell.IsRaining = false;
         }
-        */
     }
 
     void createRain(HexCell cell)

@@ -303,9 +303,9 @@ public class HexCell : MonoBehaviour
             {
                 isRaining = value;
                 generateRain();
-                // GENERATE TIME STAMP
+                rainStartTimeStamp = Time.time;
             }
-            // RefreshSelfOnly();
+            
         }
     }
 
@@ -327,9 +327,9 @@ public class HexCell : MonoBehaviour
             {
                 isCloud = true;
                 generateCloud();
-                // UPDATE TIME STAMP
+                cloudStartTimeStamp = Time.time;
             }
-            // RefreshSelfOnly();
+            
         }
     }
 
@@ -357,7 +357,10 @@ public class HexCell : MonoBehaviour
         }
     }
 
-    void deleteCloud() { }
+    void deleteCloud() {
+        Debug.Log("Im called cloud del");
+        Destroy(cloudInstance.gameObject);
+    }
     void generateCloud() {
         Transform instance = Instantiate(cloudInstance);
         Vector3 position = Position;
@@ -365,7 +368,10 @@ public class HexCell : MonoBehaviour
         instance.localPosition = HexMetrics.Perturb(position);
         instance.localRotation = Quaternion.Euler(0f, 360f * 0.5f, 0f);
     }
-    void deleteRain() { }
+    void deleteRain() {
+        Debug.Log("Im called rain del");
+        Destroy(rainInstance.gameObject);
+    }
     void generateRain() {
         Transform instance = Instantiate(rainInstance);
         Vector3 position = Position;
@@ -422,8 +428,8 @@ public class HexCell : MonoBehaviour
     float CO2Percentage;    // In percentage
     float precipitation;	// in mm
 
-    float rainDurationFactor = 1000; //max rain duration is for 1000 frames
-    float cloudDurationFactor = 1000;//
+    float rainDurationFactor = 10; //max rain duration is for 1000 frames
+    float cloudDurationFactor = 10;//
 
     int urbanLevel, farmLevel, plantLevel;
 
